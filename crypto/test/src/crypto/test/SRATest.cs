@@ -2,8 +2,10 @@
 using Org.BouncyCastle.Utilities.Test;
 using System;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -11,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         : SimpleTest
     {
 
-        static int KEY_SIZE = 2048;
+        static int KEY_SIZE_IN_BIT = 2048;
         static int CERTAINTY = 80;
         static String input = "4e6f77206973207468652074696d6520666f7220616c6c20676f6f64206d656e";
 
@@ -20,7 +22,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         //
         static String edgeInput = "ff6f77206973207468652074696d6520666f7220616c6c20676f6f64206d656e";
 
-        SecureRandom random = null;
+        private SecureRandom secureRandom = null;
+		private SraKeyParametersGenerator keyParamGenerator;
 
         public override string Name
         {
@@ -32,17 +35,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void setUp()
         {
-            this.random = new SecureRandom();
-
+            this.secureRandom = SecureRandom.GetInstance("SHA1PRNG");
+			this.keyParamGenerator = new SraKeyParametersGenerator();
+			this.keyParamGenerator.Init(KEY_SIZE_IN_BIT, CERTAINTY, secureRandom);
         }
 
         
 
         public override void PerformTest()
         {
+			setUp();
+
             testSRAEngineNotInitializedException();
             testSRAEngineDataLengthException();
             testKeyParameterGeneration();
+			testEncryptionDecryption();
+			testCommutativity();
         }
 
         private void testSRAEngineNotInitializedException()
@@ -68,12 +76,12 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             byte[] inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
 
-            SRAKeyParametersGenerator sraKeyParametersGenerator = new SRAKeyParametersGenerator();
-            sraKeyParametersGenerator.Init(12, 5, this.random);
-            SRAKeyGenerationParameters sraKeyGenerationParameters = sraKeyParametersGenerator.GenerateParameters();
-            SRAKeyPairGenerator sraKeyPairGenerator = new SRAKeyPairGenerator();
-            sraKeyPairGenerator.Init(sraKeyGenerationParameters);
-            AsymmetricCipherKeyPair asymmetricCipherKeyPair = sraKeyPairGenerator.GenerateKeyPair();
+            SraKeyParametersGenerator sraKeyParametersGenerator = new SraKeyParametersGenerator();
+            sraKeyParametersGenerator.Init(12, 5, this.secureRandom);
+            SraKeyGenerationParameters sraKeyGenerationParameters = sraKeyParametersGenerator.GenerateParameters();
+            SraKeyPairGenerator SraKeyPairGenerator = new SraKeyPairGenerator();
+            SraKeyPairGenerator.Init(sraKeyGenerationParameters);
+            AsymmetricCipherKeyPair asymmetricCipherKeyPair = SraKeyPairGenerator.GenerateKeyPair();
 
             SraEngine sraEngine = new SraEngine();
             sraEngine.Init(true, asymmetricCipherKeyPair.Public);
@@ -96,8 +104,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try
             {
-                SRAKeyParametersGenerator generator = new SRAKeyParametersGenerator();
-                generator.Init(KEY_SIZE, CERTAINTY, this.random);
+                SraKeyParametersGenerator generator = new SraKeyParametersGenerator();
+                generator.Init(KEY_SIZE_IN_BIT, CERTAINTY, this.secureRandom);
                 generator.GenerateParameters();
             }
             catch (ArgumentException e)
@@ -108,9 +116,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void testEncryptionDecryption()
         {
-            SRAKeyPairGenerator sraKeyPairGenerator = new SRAKeyPairGenerator();
-            SRAKeyGenerationParameters sraKeyGenerationParameters = keyParamGenerator.GenerateParameters();
-            sraKeyPairGenerator.init(sraKeyGenerationParameters);
+            SraKeyPairGenerator sraKeyPairGenerator = new SraKeyPairGenerator();
+            SraKeyGenerationParameters sraKeyGenerationParameters = keyParamGenerator.GenerateParameters();
+            sraKeyPairGenerator.Init(sraKeyGenerationParameters);
             AsymmetricCipherKeyPair asymmetricCipherKeyPair = sraKeyPairGenerator.GenerateKeyPair();
 
             byte[] data = Hex.Decode(edgeInput);
@@ -135,15 +143,15 @@ namespace Org.BouncyCastle.Crypto.Tests
         private void testCommutativity()
         {
             // Alice
-            SRAKeyPairGenerator sraKeyPairGeneratorAlice = new SRAKeyPairGenerator();
-            SRAKeyGenerationParameters params = keyParamGenerator.GenerateParameters();
-            sraKeyPairGeneratorAlice.Init(params);
+            SraKeyPairGenerator sraKeyPairGeneratorAlice = new SraKeyPairGenerator();
+            SraKeyGenerationParameters parameters = keyParamGenerator.GenerateParameters();
+            sraKeyPairGeneratorAlice.Init(parameters);
             AsymmetricCipherKeyPair asymmetricCipherKeyPairAlice = sraKeyPairGeneratorAlice.GenerateKeyPair();
 
             // Bob
-            SRAKeyPairGenerator sraKeyPairGeneratorBob = new SRAKeyPairGenerator();
+            SraKeyPairGenerator sraKeyPairGeneratorBob = new SraKeyPairGenerator();
 
-            sraKeyPairGeneratorBob.init(new SRAKeyGenerationParameters(params.P, params.Q, this.random, KEY_SIZE, CERTAINTY));
+            sraKeyPairGeneratorBob.Init(new SraKeyGenerationParameters(parameters.P, parameters.Q, this.secureRandom, KEY_SIZE_IN_BIT, CERTAINTY));
             AsymmetricCipherKeyPair asymmetricCipherKeyPairBob = sraKeyPairGeneratorBob.GenerateKeyPair();
 
             byte[] data = Hex.Decode(edgeInput);
