@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     {
         public static ITest[] tests = new ITest[]
         {
+            new SRATest(),
             new AesTest(),
             new AesLightTest(),
             new AesFastTest(),
