@@ -3628,6 +3628,16 @@
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
+				<File
+                    RelPath = "src\crypto\engines\SraEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+				<File
+                    RelPath = "src\crypto\engines\SraBlindedEngine.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
                 <File
                     RelPath = "src\crypto\engines\Salsa20Engine.cs"
                     SubType = "Code"
@@ -3825,6 +3835,16 @@
                 />
                 <File
                     RelPath = "src\crypto\generators\RSAKeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+				<File
+                    RelPath = "src\crypto\generators\SraKeyPairGenerator.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+				<File
+                    RelPath = "src\crypto\generators\SraKeyParametersGenerator.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -4310,6 +4330,11 @@
                 />
                 <File
                     RelPath = "src\crypto\parameters\RSAKeyGenerationParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+				<File
+                    RelPath = "src\crypto\parameters\SRAKeyGenerationParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -11621,6 +11646,11 @@
                 />
                 <File
                     RelPath = "test\src\crypto\test\RsaTest.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+				<File
+                    RelPath = "test\src\crypto\test\SRATest.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
