@@ -4344,6 +4344,11 @@
                     BuildAction = "Compile"
                 />
                 <File
+                    RelPath = "src\crypto\parameters\SraKeyParameters.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
                     RelPath = "src\crypto\parameters\RSAPrivateCrtKeyParameters.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
@@ -5335,6 +5340,11 @@
                 />
                 <File
                     RelPath = "src\crypto\util\Pack.cs"
+                    SubType = "Code"
+                    BuildAction = "Compile"
+                />
+                <File
+                    RelPath = "src\crypto\util\SraKeyParameterExtractor.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
                 />
@@ -12633,4 +12643,3 @@
         </Files>
     </CSHARP>
 </VisualStudioProject>
-
