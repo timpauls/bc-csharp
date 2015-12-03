@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -177,5 +178,54 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Fail("failed - encryption is not commutative!");
             }
         }
+
+		private void restoreKeyAndUseIt() {
+			SraKeyPairGenerator sraKeyPairGenerator = new SraKeyPairGenerator();
+			SraKeyGenerationParameters sraKeyGenerationParameters = keyParamGenerator.GenerateParameters();
+			sraKeyPairGenerator.Init(sraKeyGenerationParameters);
+			AsymmetricCipherKeyPair asymmetricCipherKeyPair = sraKeyPairGenerator.GenerateKeyPair();
+
+			SraKeyParameters sraKeyParameters = SraKeyParameterExtractor.ExtractParameters(asymmetricCipherKeyPair);
+
+			// Create another Keypair
+			AsymmetricCipherKeyPair keyPair2 = SraKeyPairGenerator.CreateKeyPair(sraKeyParameters);
+
+			// Try encryption and decryption
+			byte[] data = Hex.Decode(edgeInput);
+
+			// Original key
+			SraEngine engine = new SraEngine();
+			engine.Init(true, asymmetricCipherKeyPair.Public);
+			byte[] ciphertext = engine.ProcessBlock(data, 0, data.Length);
+
+			engine.Init(false, asymmetricCipherKeyPair.Private);
+			byte[] plaintext = engine.ProcessBlock(ciphertext, 0, ciphertext.Length);
+
+			if (!Arrays.AreEqual(plaintext, data)) {
+				Fail("fail - decrypton with original key failed to restore original plain text");
+			}
+
+			// Restored key
+			engine.Init(true, keyPair2.Public);
+			byte[] ciphertext2 = engine.ProcessBlock(data, 0, data.Length);
+
+			engine.Init(false, keyPair2.Private);
+			byte[] plaintext2 = engine.ProcessBlock(ciphertext2, 0, ciphertext2.Length);
+
+			if (!Arrays.AreEqual(plaintext2, data)) {
+				Fail("fail - decrypton with restored key failed to restore original plain text");
+			}
+
+			// Encryption with original, decryption with restored key
+			engine.Init(true, asymmetricCipherKeyPair.Public);
+			byte[] ciphertext3 = engine.ProcessBlock(data, 0, data.Length);
+
+			engine.Init(false, keyPair2.Private);
+			byte[] plaintext3 = engine.ProcessBlock(ciphertext3, 0, ciphertext3.Length);
+
+			if (!Arrays.AreEqual(plaintext3, data)) {
+				Fail("fail - decrypton with restored key failed to restore original plain text encrypted with original key");
+			}
+		}
     }
 }

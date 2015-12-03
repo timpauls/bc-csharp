@@ -80,6 +80,22 @@ namespace Org.BouncyCastle.Crypto.Generators
 			return result;
 		}
 
+		public static AsymmetricCipherKeyPair CreateKeyPair(SraKeyParameters parameters) {
+			BigInteger n = parameters.P.Multiply(parameters.Q);
+			//
+			// calculate the CRT factors
+			//
+			BigInteger dP, dQ, qInv;
+
+			dP = parameters.D.Remainder(parameters.P.Subtract(One));
+			dQ = parameters.D.Remainder(parameters.Q.Subtract(One));
+			qInv = parameters.Q.ModInverse(parameters.P);
+
+			return new AsymmetricCipherKeyPair(
+				new RsaKeyParameters(false, n, parameters.E),
+				new RsaPrivateCrtKeyParameters(n, parameters.E, parameters.D, parameters.P, parameters.Q, dP, dQ, qInv));
+		}
+
 		/// <summary>Choose a random public exponent to use with SRA.</summary>
 		/// <param name="phiN">(p-1)*(q-1)</param>
 		/// <returns>an exponent e, with 1 < e < phiN</returns>
